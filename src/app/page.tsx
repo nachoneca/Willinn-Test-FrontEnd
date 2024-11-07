@@ -1,25 +1,31 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    console.log("Login attempt");  // Verifica si entra en la función
 
-    const response = await fetch("/api/login", {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/User/login`, { // Asegúrate de apuntar al backend correcto.
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
+    
 
     const data = await response.json();
 
     if (response.ok) {
+      console.log(data);  // Verifica la respuesta del backend
       localStorage.setItem("token", data.Token);
+      router.push("/users");
       // Redirigir al usuario a otra página, si es necesario
     } else {
       setError("Email o contraseña incorrecta");
