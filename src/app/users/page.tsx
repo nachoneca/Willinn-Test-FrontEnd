@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 
 export default function UsersPage() {
   const [users, setUsers] = useState([]); // Lista de usuarios
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [searchText, setSearchText] = useState("");
   const [newUser, setNewUser] = useState({ id: 0, name: "", email: "", password: "", isActive: true}); // Datos para el nuevo usuario
 
   // Función para obtener la lista de usuarios desde el backend
@@ -11,6 +13,7 @@ export default function UsersPage() {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/User/all`);
       const data = await response.json();
       setUsers(data);
+      setFilteredUsers(data);
     } catch (error) {
       console.error("Error fetching users:", error);
     }
@@ -20,6 +23,15 @@ export default function UsersPage() {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    setFilteredUsers(
+      users.filter((user) =>
+        user.name.toLowerCase().includes(searchText.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchText.toLowerCase())
+      )
+    );
+  }, [searchText, users]);
 
   // Función para crear un nuevo usuario
   const createUser = async (e) => {
@@ -105,10 +117,18 @@ export default function UsersPage() {
         <h1 className="text-3xl font-bold mb-8">Usuarios</h1>
 
         <div className="grid grid-cols-3 gap-8">
-          {/* Caja de lista de usuarios (más grande ocupando 2 columnas) */}
+          {/* Caja de lista de usuarios */}
           <div className="col-span-2 bg-white p-6 rounded-lg shadow-md max-h-[calc(100vh-150px)]">
             <h2 className="text-xl font-semibold mb-4">Lista de Usuarios</h2>
             
+            <input
+              type="text"
+              placeholder="Buscar usuario por nombre o correo"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              className="w-full mb-4 px-4 py-2 border border-gray-300 rounded-lg"
+            />
+
             {/* Tabla de usuarios */}
             <div className="overflow-y-auto max-h-[calc(100vh-280px)]">
               <table className="min-w-full bg-white border border-gray-200">
@@ -120,7 +140,7 @@ export default function UsersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                {users.map((user) => (
+                {filteredUsers.map((user) => (
                     <tr key={user.id} className="bg-blue border-b border-gray-200">
                       <td className="py-6 px-4 text-blue-600">{user.name}</td>
                       <td className="py-6 px-4 text-blue-600">{user.email}</td>
